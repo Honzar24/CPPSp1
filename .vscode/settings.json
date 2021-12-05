@@ -81,7 +81,8 @@
     },
     "cmake.debugConfig": {
         "args": [
-            "vfs.fs"
+            "inputs/test.txt",
+            "logs/run.log"
         ]
     },
     "C_Cpp.intelliSenseEngineFallback": "Enabled"
