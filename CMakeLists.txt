@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 project(DiskretniSimRadl VERSION 0.1.0)
 
-set(SOURCES_LIST main.cpp)
+set(SOURCES_LIST main.cpp src/Object.cpp src/Rect.cpp)
 
 add_executable(kiv-cpp-sp-01 ${SOURCES_LIST})
 
