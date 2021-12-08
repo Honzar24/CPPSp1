@@ -2,17 +2,28 @@
 #include <filesystem>
 
 #include <Arena.hpp>
+#include <Rect.hpp>
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
 
-    Arena arena(200,200,100);
-    arena.add(0,100,Object("0100",0,0,10,10));
-    arena.add(0,2,Object("02",0,0,10,10));
-    arena.add(5,10,Object("510",0,0,10,10));
-    while(!arena.end())
+    Arena arena(200, 200, 40);
+    auto r1 = Rect(std::string("r1"),0,0,10,10,10,10);
+    auto r2 = Rect(std::string("r2"),10,-10.5,10,10,10,10);
+    auto b = r1.collide(r2);
+    auto bi = r2.collide(r1);
+
+    Object& o1 = r1;
+    Object& o2 = r2;
+
+    auto bo = o1.collide(o2);
+
+
+    arena.add(0, 100, r1);
+    arena.add(0, 20, r2);
+    while (!arena.end())
     {
         arena.step();
     }
-    std::cout << "Hello, world!\n";
     return 0;
 }
