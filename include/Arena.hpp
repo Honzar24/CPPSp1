@@ -5,6 +5,7 @@
 #include <functional>
 #include <ranges>
 #include <vector>
+#include <iostream>
 
 #include <Object.hpp>
 #include <P_types.hpp>
@@ -14,12 +15,6 @@ class Arena
     using TimedObject = std::tuple<size_t, size_t, Object&>;
 
 public:
-    enum class Flags
-    {
-        NONE,
-        END_AFTER_COLLISION,
-        REPORT_DISTANCE
-    };
 
     Arena(pos_type w, pos_type h, time_type stepSize, size_t n_steps)
         : width(w), height(h), step_size(stepSize), step_count(0),
@@ -54,12 +49,11 @@ public:
     }
 
 private:
-    pos_type width;
-    pos_type height;
-    time_type step_size;
+    const pos_type width;
+    const pos_type height;
+    const time_type step_size;
     size_t step_count;
-    size_t max_step_count;
-    // TODO: active objects vector uniq pointers
+    const size_t max_step_count;
     std::vector<TimedObject> objects;
     std::vector<TimedObject> ended_objects;
 
@@ -110,7 +104,7 @@ private:
                 auto& o2 = std::get<2>(*itj);
                 if (o1.collide(o2))
                 {
-                    assert(false && "collison");
+                    std::cout << step_count << ":collision " << o1 << "\t" << o2 << std::endl;
                 }
             }
         }
