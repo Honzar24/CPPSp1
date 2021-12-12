@@ -26,19 +26,19 @@ public:
 
     void setPos(pos_type px, pos_type py);
 
-    bool contains_point(pos_type px, pos_type py);
+    virtual void setPos(Vect2 pos);
 
-    Vect2 closest_point(pos_type px, pos_type py);
+    bool contains_point(pos_type px, pos_type py) const;
 
-    bool collide(Object& o);
+    Vect2 closest_point(pos_type px, pos_type py) const;
+
+    bool collide(Object& o) const;
 
     //pure virtual
 
-    virtual bool contains_point(Vect2 point) = 0;
+    virtual bool contains_point(Vect2 point) const = 0;
 
-    virtual void setPos(Vect2 pos) = 0;
-
-    virtual Vect2 closest_point(Vect2 point) = 0;
+    virtual Vect2 closest_point(Vect2 point) const = 0;
 
 
 private:

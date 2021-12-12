@@ -23,17 +23,17 @@ public:
         this->height = h;
     };
 
-    Vect2 getP0();
+    Vect2 getP0() const;
 
-    Vect2 getP2();
+    Vect2 getP2() const;
 
     virtual ~Rect() = default;
 
     virtual void setPos(Vect2 pos) override;
 
-    virtual bool contains_point(Vect2 point) override;
+    virtual bool contains_point(Vect2 point) const override;
 
-    virtual Vect2 closest_point(Vect2 point) override;
+    virtual Vect2 closest_point(Vect2 point) const override;
 
 private:
     size_t width;

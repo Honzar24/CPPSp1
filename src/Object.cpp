@@ -21,12 +21,12 @@ void Object::setPos(Vect2 pos)
     position = pos;
 }
 
-bool Object::contains_point(pos_type px, pos_type py)
+bool Object::contains_point(pos_type px, pos_type py) const
 {
     return contains_point({ px,py });
 }
 
-Vect2 Object::closest_point(pos_type px, pos_type py)
+Vect2 Object::closest_point(pos_type px, pos_type py) const
 {
     return closest_point({ px,py });
 }
@@ -37,9 +37,11 @@ std::ostream& operator<<(std::ostream& out, Object& o)
     return out;
 }
 
-bool Object::collide(Object& o)
+bool Object::collide(Object& o) const
 {
-    auto p1 = this->closest_point(o.position);
-    auto p2 = o.closest_point(this->position);
-    return contains_point(p2) || o.contains_point(p1);
+    if(this->position == o.position)
+    {
+        return true;
+    }
+    return contains_point(o.closest_point(this->position)) || o.contains_point(closest_point(o.position));
 }
