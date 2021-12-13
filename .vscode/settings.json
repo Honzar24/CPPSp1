@@ -78,12 +78,13 @@
         "valarray": "cpp",
         "variant": "cpp",
         "*.inc": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "*.ipp": "cpp"
     },
     "cmake.debugConfig": {
         "args": [
-            "inputs/test.txt",
-            "logs/run.log"
+            "../inputs/test.txt",
+            "null"
         ]
     },
     "C_Cpp.intelliSenseEngineFallback": "Enabled"
