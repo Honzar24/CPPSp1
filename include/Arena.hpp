@@ -6,13 +6,14 @@
 #include <ranges>
 #include <vector>
 #include <iostream>
+#include <memory>
 
 #include <Object.hpp>
 #include <P_types.hpp>
 
 class Arena
 {
-    using TimedObject = std::tuple<size_t, size_t, Object&>;
+    using TimedObject = std::tuple<size_t, size_t, std::unique_ptr<Object>>;
 
 public:
 
@@ -25,10 +26,10 @@ public:
 
     ~Arena() = default;
 
-    void add(size_t start, size_t end, Object& o)
+    void add(size_t start, size_t end, std::unique_ptr<Object> ptr)
     {
         assert(start < end);
-        objects.push_back({ start,end,o });
+        objects.emplace_back(start,end,std::move(ptr));
     }
 
     void step()
@@ -47,6 +48,12 @@ public:
     {
         return step_count >= max_step_count;
     }
+
+    size_t getStep()const
+    {
+        return step_count;
+    }
+    
 
 private:
     const pos_type width;
@@ -84,13 +91,13 @@ private:
         auto current_objects = objects | std::views::filter(current_L);
         for (auto& [start, end, o] : current_objects)
         {
-            o.update(step_size);
+            o->update(step_size);
         }
     }
 
     void collide()
     {
-        auto current_objects = objects | std::views::filter([&](auto i) {
+        auto current_objects = objects | std::views::filter([&](auto& i) {
             return std::get<0>(i) <= step_count;
             });
         for (auto iti = current_objects.begin(); iti != current_objects.end();
@@ -102,9 +109,9 @@ private:
             for (; itj != current_objects.end(); itj++)
             {
                 auto& o2 = std::get<2>(*itj);
-                if (o1.collide(o2))
+                if (o1->collide(*o2))
                 {
-                    std::cout << step_count << ":collision " << o1 << "\t" << o2 << std::endl;
+                    std::cout << step_count << ":collision " << *o1 << "\t" << *o2 << std::endl;
                 }
             }
         }
