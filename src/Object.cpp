@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& out, Object& o)
 
 bool Object::collide(Object& o) const
 {
-    if(this->position == o.position)
+    if (this->position == o.position)
     {
         return true;
     }

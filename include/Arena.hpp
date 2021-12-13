@@ -29,7 +29,7 @@ public:
     void add(size_t start, size_t end, std::unique_ptr<Object> ptr)
     {
         assert(start < end);
-        objects.emplace_back(start,end,std::move(ptr));
+        objects.emplace_back(start, end, std::move(ptr));
     }
 
     void step()
@@ -53,7 +53,7 @@ public:
     {
         return step_count;
     }
-    
+
 
 private:
     const pos_type width;

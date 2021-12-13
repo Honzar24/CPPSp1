@@ -4,7 +4,7 @@
 
 class Circle : public Object
 {
-    public:
+public:
     Circle(std::string name, pos_type r) : Circle(name, { 0,0 }, { 0,0 }, r) {};
     Circle(std::string name, pos_type posx, pos_type posy, pos_type velx, pos_type vely, pos_type r) : Circle(name, { posx, posy }, { velx, vely }, r) {};
     Circle(std::string name, Vect2 pos, Vect2 vel, pos_type r) : Object(name, pos, vel)
@@ -12,7 +12,7 @@ class Circle : public Object
         this->r = r;
     };
 
-    virtual ~Circle(){};
+    virtual ~Circle() {};
 
     virtual bool contains_point(Vect2 point) const override;
 
