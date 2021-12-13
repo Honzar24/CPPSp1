@@ -16,7 +16,7 @@ public:
 
     Object(std::string name, pos_type posx, pos_type posy, pos_type velx, pos_type vely) : Object(name, { posx, posy }, { velx, vely }) {};
 
-    Object(std::string name, Vect2 pos, Vect2 vel) : name(name), position(pos), velocity(vel) {};
+    Object(std::string name, Vect2 pos, Vect2 vel) : name(name), velocity(vel),  position(pos) {};
 
     virtual ~Object();
 
