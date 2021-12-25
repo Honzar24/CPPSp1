@@ -38,12 +38,12 @@ public:
         return std::tie(x, y) == std::tie(o.x, o.y);
     }
 
-    inline pos_type lenght()
+    inline pos_type lenght() const
     {
-        return std::sqrt(x * x + y * y);
+        return std::abs(std::sqrt(x * x + y * y));
     }
 
-    inline Vect2 norm()
+    Vect2 norm()
     {
         pos_type l = lenght();
         if (lenght() == 0)
