@@ -7,13 +7,14 @@
 #include <vector>
 #include <iostream>
 #include <memory>
+#include <sstream>
 
 #include <Object.hpp>
 #include <P_types.hpp>
 
 class Arena
 {
-    using TimedObject = std::tuple<size_t, size_t, std::unique_ptr<Object>>;
+    using TimedObject = std::tuple<size_t, size_t, std::unique_ptr<Object>,size_t>;
 
 public:
 
@@ -28,8 +29,8 @@ public:
 
     void add(size_t start, size_t end, std::unique_ptr<Object> ptr)
     {
-        assert(start < end);
-        objects.emplace_back(start, end, std::move(ptr));
+        assert(start <= end);
+        objects.emplace_back(start, end, std::move(ptr),0);
     }
 
     void step()
@@ -54,6 +55,25 @@ public:
         return step_count;
     }
 
+    int numberOfCollisoin()
+    {
+        return collision_report.size();
+    } 
+
+    pos_type getWidth()
+    {
+        return width;
+    }
+
+    pos_type heigtht()
+    {
+        return height;
+    }
+
+    void report_collisions(std::stringstream& s);
+
+    void report_distances(std::stringstream& s);
+
 
 private:
     const pos_type width;
@@ -63,57 +83,18 @@ private:
     const size_t max_step_count;
     std::vector<TimedObject> objects;
     std::vector<TimedObject> ended_objects;
+    std::vector<std::string> collision_report;
 
     const std::function<bool(TimedObject& i)> ended_L = [this](TimedObject& i) {
-        auto& [start, end, o] = i;
+        auto& [start, end, o,dist] = i;
         return end <= this->step_count;
     };
     std::function<bool(TimedObject& i)> current_L
         = [this](TimedObject& i) { return std::get<0>(i) <= this->step_count; };
 
-    void removeEnded()
-    {
-        for (auto it = objects.begin(); it != objects.end();)
-        {
-            auto fits = std::find_if(it, objects.end(), ended_L);
-            if (fits != std::end(objects))
-            {
-                auto fite = std::find_if_not(fits, objects.end(), ended_L);
-                std::move(fits, fite, std::back_inserter(ended_objects));
-                it = objects.erase(fits, fite);
-            }
-            it = fits;
-        }
-    }
+    void removeEnded();
 
-    void update()
-    {
-        auto current_objects = objects | std::views::filter(current_L);
-        for (auto& [start, end, o] : current_objects)
-        {
-            o->update(step_size);
-        }
-    }
+    void update();
 
-    void collide()
-    {
-        auto current_objects = objects | std::views::filter([&](auto& i) {
-            return std::get<0>(i) <= step_count;
-            });
-        for (auto iti = current_objects.begin(); iti != current_objects.end();
-            iti++)
-        {
-            auto& o1 = std::get<2>(*iti);
-            auto itj = iti;
-            itj++;
-            for (; itj != current_objects.end(); itj++)
-            {
-                auto& o2 = std::get<2>(*itj);
-                if (o1->collide(*o2))
-                {
-                    std::cout << step_count << ":collision " << *o1 << "\t" << *o2 << std::endl;
-                }
-            }
-        }
-    }
+    void collide();
 };

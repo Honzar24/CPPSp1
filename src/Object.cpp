@@ -5,20 +5,51 @@ Object::~Object()
 
 }
 
+
+
+void Object::setPos(pos_type px, pos_type py)
+{
+    Vect2 p = { px,py };
+    setPos(p);
+}
+
+void Object::setPos(Vect2& pos)
+{
+    position = pos;
+}
+
+Vect2 Object::getPos(){
+    return position;
+}
+
+void Object::setVel(pos_type vx,pos_type vy)
+{
+    Vect2 v = {vx,vy};
+    setVel(v);
+}
+
+void Object::setVel(Vect2& vel)
+{
+    velocity = vel;
+}
+
+Vect2 Object::getVel()
+{
+    return velocity;
+}
+
+void Object::setName(std::string& nname){
+    name = nname;
+}
+
+std::string Object::getName(){
+    return name;
+}
+
 void Object::update(time_type delta)
 {
     Vect2 step = velocity * delta;
     position += step;
-}
-
-void Object::setPos(pos_type px, pos_type py)
-{
-    setPos({ px,py });
-}
-
-void Object::setPos(Vect2 pos)
-{
-    position = pos;
 }
 
 bool Object::contains_point(pos_type px, pos_type py) const

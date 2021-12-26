@@ -1,10 +1,12 @@
 #include <cstdlib>
 #include <cstddef>
+#include <cmath>
 
 #include <iostream>
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include <map>
 #include <string>
 #include <chrono>
 #include <functional>
@@ -16,9 +18,46 @@
 using namespace std::chrono_literals;
 using fspath = std::filesystem::path;
 
-constexpr size_t FLAGS_COUNT = 2;
-
+//flag if parsing failed
+bool parsing_fail = false;
 std::stringstream REPORT;
+
+enum ERROR_TYPES
+{
+    error,
+    logic,
+    format,
+    identifier
+};
+
+constexpr std::ostream& operator<<(std::ostream& s, ERROR_TYPES& err)
+{
+    switch (err)
+    {
+    case logic:
+        s << "logic_error"; break;
+    case format:
+        s << "invalid_format"; break;
+    case identifier:
+        s << "identifier"; break;
+    default:
+        s << "error";
+    }
+    return s;
+}
+
+void report_append(std::string msg)
+{
+    REPORT << msg << std::endl;
+}
+
+void report_error(std::string errormsg, ERROR_TYPES type = ERROR_TYPES::error)
+{
+    report_append("ERROR");
+    REPORT << type << std::endl;
+    report_append(errormsg);
+    parsing_fail = true;
+}
 
 struct arena_data
 {
@@ -26,7 +65,7 @@ struct arena_data
     pos_type arena_h;
     time_type step_size;
     size_t step_count;
-    std::vector<std::string> flags;
+    std::map<std::string, size_t> flags;
 };
 
 struct object_data
@@ -36,13 +75,14 @@ struct object_data
     size_t start, end;
 };
 
-bool seekWord(std::string word, std::fstream& file)
+inline bool seekWord(std::string word, std::fstream& file)
 {
     std::string line;
     while (std::getline(file, line) && line.compare(word)) {}
     if (!file)
     {
-        REPORT << "ERROR" << std::endl << "invalid_format" << std::endl << "File do not cointains Keyword:" << word << std::endl;
+        auto msg = "File do not cointains Keyword:" + word;
+        report_error(msg, ERROR_TYPES::format);
         return false;
     }
     return true;
@@ -56,10 +96,35 @@ std::optional<struct arena_data> parseArena(std::fstream& file)
         return std::nullopt;
     }
     file >> ret.arena_w >> ret.arena_h >> ret.step_size >> ret.step_count;
+    if (!file)
+    {
+        report_error("Not not enough parameters for arena expected 4", ERROR_TYPES::format);
+        return std::nullopt;
+    }
+    if (ret.arena_w <= 0)
+    {
+        report_error("Invalid width of arena! Must be greater than 0", ERROR_TYPES::logic);
+        return std::nullopt;
+    }
+    if (ret.arena_h <= 0)
+    {
+        report_error("Invalid height of arena! Must be greater than 0", ERROR_TYPES::logic);
+        return std::nullopt;
+    }
+    if (ret.step_size <= 0)
+    {
+        report_error("Invalid step size of arena! Must be greater than 0", ERROR_TYPES::logic);
+        return std::nullopt;
+    }
+    if (ret.step_count <= 0)
+    {
+        report_error("Invalid step count! Must be greater than 0", ERROR_TYPES::logic);
+        return std::nullopt;
+    }
     file >> line;
     for (;line.compare("OBJECTS") != 0;)
     {
-        ret.flags.push_back(line);
+        ret.flags[line] = 1;
         file >> line;
     }
     if (line.compare("OBJECTS") != 0)
@@ -69,33 +134,94 @@ std::optional<struct arena_data> parseArena(std::fstream& file)
     return ret;
 }
 
-struct object_data parseObject(std::fstream& file)
+struct object_data parseObject(std::fstream& file, Arena& arena)
 {
-    struct object_data object;
+    struct object_data object = {};
     file >> object.name >> object.posx >> object.posy >> object.velx >> object.vely >> object.start >> object.end;
+    if (!file)
+    {
+        report_error("Not not enough base parameters parameters. Expected: <name> <px> <py> <vx> <vy> <start> <end>", ERROR_TYPES::format);
+        return object;
+    }
+    if (object.posx < 0 || object.posy > arena.getWidth())
+    {
+        auto msg = object.name + " cannot start outside the arena! Clamping position.";
+        report_error(msg, ERROR_TYPES::logic);
+        object.posx = std::min(static_cast<pos_type>(0), object.posx);
+        object.posy = std::min(arena.getWidth(), object.posy);
+    }
+    if (object.end < object.start)
+    {
+        auto msg = object.name + " cannot hide not shown object!";
+        report_error(msg, ERROR_TYPES::logic);
+        object.end = object.start;
+    }
     return object;
 }
 bool parseSquare(std::fstream& file, Arena& arena)
 {
     pos_type a;
-    auto base = parseObject(file);
+    auto base = parseObject(file, arena);
+    if(!file)
+    {
+        return false;
+    }
     file >> a;
+    if (!file)
+    {
+        report_error(base.name + " Not not enough parameters. Expected: <name> <px> <py> <vx> <vy> <start> <end> <a>", ERROR_TYPES::format);
+        return false;
+    }
+    if (a < 0)
+    {
+        auto msg = base.name + " square line can not have negative value! Making the value unsigned.";
+        report_error(msg, ERROR_TYPES::logic);
+        a = std::abs(a);
+    }
     arena.add(base.start, base.end, std::make_unique<Rect>(base.name, base.posx, base.posy, base.velx, base.vely, a, a));
     return true;
 }
 bool parseBall(std::fstream& file, Arena& arena)
 {
     pos_type r;
-    auto base = parseObject(file);
+    auto base = parseObject(file, arena);
     file >> r;
+    if (!file)
+    {
+        report_error(base.name + " Not not enough parameters. Expected: <name> <px> <py> <vx> <vy> <start> <end> <r>", ERROR_TYPES::format);
+        return false;
+    }
+    if (r < 0)
+    {
+        auto msg = base.name + " ball radius can not have negative value! Making the value unsigned.";
+        report_error(msg, ERROR_TYPES::logic);
+        r = std::abs(r);
+    }
     arena.add(base.start, base.end, std::make_unique<Circle>(base.name, base.posx, base.posy, base.velx, base.vely, r));
     return true;
 }
 bool parseRectangle(std::fstream& file, Arena& arena)
 {
     pos_type w, h;
-    auto base = parseObject(file);
+    auto base = parseObject(file, arena);
     file >> w >> h;
+    if (!file)
+    {
+        report_error(base.name + " Not not enough parameters. Expected: <name> <px> <py> <vx> <vy> <start> <end> <w> <h>", ERROR_TYPES::format);
+        return false;
+    }
+    if (w < 0)
+    {
+        auto msg = base.name + " rect width can not have negative value! Making the value unsigned.";
+        report_error(msg, ERROR_TYPES::logic);
+        w = std::abs(w);
+    }
+    if (h < 0)
+    {
+        auto msg = base.name + " rect height can not have negative value! Making the value unsigned.";
+        report_error(msg, ERROR_TYPES::logic);
+        h = std::abs(h);
+    }
     arena.add(base.start, base.end, std::make_unique<Rect>(base.name, base.posx, base.posy, base.velx, base.vely, w, h));
     return true;
 }
@@ -114,7 +240,8 @@ std::function<bool(std::fstream& file, Arena& arena)> getParser(std::string& typ
     {
         return parseRectangle;
     }
-    REPORT << "ERROR" << std::endl << "identifier" << std::endl << "Unknow type: " << type << " is not in [square,ball,rectangle]" << std::endl;
+    auto msg = "Unknow type: " + type + " is not in [square,ball,rectangle]";
+    report_error(msg, ERROR_TYPES::identifier);
     return nullptr;
 }
 
@@ -129,10 +256,23 @@ bool parseSection(std::fstream& file, Arena& arena)
         return false;
     }
     parser = getParser(type);
+    if (parser == nullptr)
+    {
+        return false;
+    }
+    if(!file)
+    {
+        report_error("Expected count of " + type + "got none!",ERROR_TYPES::format);
+        return false;
+    }
     file >> count;
     for (size_t i = 0; i < count; i++)
     {
-        parser(file, arena);
+        if (!parser(file, arena))
+        {
+            report_error("Expected " + std::to_string(count) + " " + type + " got " + std::to_string(i), ERROR_TYPES::logic);
+            return false;
+        }
     }
     return true;
 }
@@ -154,15 +294,8 @@ void export_report(std::string& outFileName)
     if (!out.is_open())
     {
         std::cerr << "Can not open output file " << output.make_preferred().string() << std::endl;
-        exit(EXIT_FAILURE);
     }
 }
-
-void report_append(std::string msg)
-{
-    REPORT << msg << std::endl;
-}
-
 
 int main(int argc, char** argv)
 {
@@ -177,48 +310,73 @@ int main(int argc, char** argv)
     if (!in.is_open())
     {
         std::cerr << "Can not open input file " << input.make_preferred().string() << std::endl;
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
     report_append("REPORT");
 
+    ///parsing
 
     auto dataBox = parseArena(in);
     if (!dataBox.has_value())
     {
         export_report(output);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
     auto data = dataBox.value();
     Arena arena(data.arena_w, data.arena_h, data.step_size, data.step_count);
     while (parseSection(in, arena));;
 
-    //end after col
+    if (parsing_fail)
+    {
+        export_report(output);
+        return EXIT_FAILURE;
+    }
+
+    ///simulation
 
     std::chrono::steady_clock timer;
     auto start = timer.now();
-    while (!arena.end())
-    {
-        arena.step();
-    }
     auto end = timer.now();
+    if (data.flags["end_after_collision"] == 1)
+    {
+        start = timer.now();
+        while (!arena.end() && arena.numberOfCollisoin() < 1)
+        {
+            arena.step();
+        }
+        end = timer.now();
+    } else
+    {
+        start = timer.now();
+        while (!arena.end())
+        {
+            arena.step();
+        }
+        end = timer.now();
+    }
+
+    ///Reporting
+
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     report_append("OK");
-    report_append(std::string(arena.getStep() + ""));
-    if(arena.getStep() >= data.step_count)
+    report_append(std::to_string(arena.getStep()));
+    if (arena.getStep() >= data.step_count)
     {
         report_append("timeout");
-    }
-    if(false) 
+    } else if (arena.numberOfCollisoin() == 1)
     {
         report_append("collision");
     }
-    report_append(duration.count()+" ms");
+    std::string dur_str;
+    dur_str += std::to_string(duration.count());
+    dur_str += " ms";
+    report_append(dur_str);
     report_append("COLLISIONS");
-    //arena.report_collisions(outs);
-    if(false)
+    arena.report_collisions(REPORT);
+    if (data.flags["report_distance"] == 1)
     {
         report_append("DISTANCES");
-        //arena.report_distances(outs);
+        arena.report_distances(REPORT);
     }
     export_report(output);
     return EXIT_SUCCESS;

@@ -22,11 +22,23 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, Object& o);
 
-    void update(time_type delta);
-
     void setPos(pos_type px, pos_type py);
 
-    virtual void setPos(Vect2 pos);
+    void setPos(Vect2& pos);
+
+    Vect2 getPos();
+
+    void setVel(pos_type vx, pos_type vy);
+
+    void setVel(Vect2& vel);
+
+    Vect2 getVel();
+
+    void setName(std::string& nname);
+
+    std::string getName();
+
+    void update(time_type delta);
 
     bool contains_point(pos_type px, pos_type py) const;
 
