@@ -5,59 +5,60 @@ Object::~Object()
 
 }
 
-
-
 void Object::setPos(pos_type px, pos_type py)
 {
     Vect2 p = { px,py };
     setPos(p);
 }
 
-void Object::setPos(Vect2& pos)
+void Object::setPos(const Vect2& pos)
 {
     position = pos;
 }
 
-Vect2 Object::getPos(){
+Vect2 Object::getPos()const
+{
     return position;
 }
 
-void Object::setVel(pos_type vx,pos_type vy)
+void Object::setVel(pos_type vx, pos_type vy)
 {
-    Vect2 v = {vx,vy};
+    Vect2 v = { vx,vy };
     setVel(v);
 }
 
-void Object::setVel(Vect2& vel)
+void Object::setVel(const Vect2& vel)
 {
     velocity = vel;
 }
 
-Vect2 Object::getVel()
+Vect2 Object::getVel()const
 {
     return velocity;
 }
 
-void Object::setName(std::string& nname){
+void Object::setName(const std::string& nname)
+{
     name = nname;
 }
 
-std::string Object::getName(){
+std::string Object::getName() const
+{
     return name;
 }
 
-void Object::update(time_type delta)
+void Object::update(const time_type delta)
 {
     Vect2 step = velocity * delta;
     position += step;
 }
 
-bool Object::contains_point(pos_type px, pos_type py) const
+bool Object::contains_point(const pos_type px, const pos_type py) const
 {
     return contains_point({ px,py });
 }
 
-Vect2 Object::closest_point(pos_type px, pos_type py) const
+Vect2 Object::closest_point(const pos_type px, const pos_type py) const
 {
     return closest_point({ px,py });
 }
@@ -68,7 +69,7 @@ std::ostream& operator<<(std::ostream& out, Object& o)
     return out;
 }
 
-bool Object::collide(Object& o) const
+bool Object::collide(const Object& o) const
 {
     if (this->position == o.position)
     {

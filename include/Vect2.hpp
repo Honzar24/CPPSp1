@@ -1,8 +1,10 @@
 #pragma once
 
-#include <P_types.hpp>
-#include <tuple>
 #include <cmath>
+
+#include <tuple>
+
+#include <P_types.hpp>
 
 class Vect2
 {
@@ -21,19 +23,19 @@ public:
         y += ov.y;
         return *this;
     }
-    inline Vect2& operator+=(Vect2& ov)
+    inline Vect2& operator+=(const Vect2& ov)
     {
         x += ov.x;
         y += ov.y;
         return *this;
     }
-    inline Vect2& operator*(pos_type s)
+    inline Vect2& operator*(const pos_type s)
     {
         x *= s;
         y *= s;
         return *this;
     }
-    inline bool operator==(Vect2& o) const
+    inline bool operator==(const Vect2& o) const
     {
         return std::tie(x, y) == std::tie(o.x, o.y);
     }

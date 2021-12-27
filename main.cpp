@@ -162,7 +162,7 @@ bool parseSquare(std::fstream& file, Arena& arena)
 {
     pos_type a;
     auto base = parseObject(file, arena);
-    if(!file)
+    if (!file)
     {
         return false;
     }
@@ -260,9 +260,9 @@ bool parseSection(std::fstream& file, Arena& arena)
     {
         return false;
     }
-    if(!file)
+    if (!file)
     {
-        report_error("Expected count of " + type + "got none!",ERROR_TYPES::format);
+        report_error("Expected count of " + type + "got none!", ERROR_TYPES::format);
         return false;
     }
     file >> count;
@@ -337,25 +337,19 @@ int main(int argc, char** argv)
     ///simulation
 
     std::chrono::steady_clock timer;
-    auto start = timer.now();
-    auto end = timer.now();
+    std::function<bool()> end_sim = [&arena] {return !arena.end();};
     if (data.flags["end_after_collision"] == 1)
     {
-        start = timer.now();
-        while (!arena.end() && arena.numberOfCollisoin() < 1)
-        {
-            arena.step();
-        }
-        end = timer.now();
-    } else
-    {
-        start = timer.now();
-        while (!arena.end())
-        {
-            arena.step();
-        }
-        end = timer.now();
+        end_sim = [&arena] {return !arena.end() && arena.numberOfCollisoin() < 1;};
     }
+
+    auto start = timer.now();
+    while (end_sim())
+    {
+        arena.step();
+    }
+    auto end = timer.now();
+
 
     ///Reporting
 

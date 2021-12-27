@@ -5,11 +5,11 @@
 std::string report(size_t step, Object& o1, Object& o2)
 {
     std::stringstream report;
-    report << o1.getName()<< " "<< o2.getName() << " " << step <<  " ";
+    report << o1.getName() << " " << o2.getName() << " " << step << " ";
     Vect2 pos = o1.getPos();
-    report << pos.x << " " <<  pos.y <<" ";
+    report << pos.x << " " << pos.y << " ";
     pos = o2.getPos();
-    report << pos.x << " " <<  pos.y;
+    report << pos.x << " " << pos.y;
     return report.str();
 }
 
@@ -31,7 +31,7 @@ void Arena::removeEnded()
 void Arena::update()
 {
     auto current_objects = objects | std::views::filter(current_L);
-    for (auto& [start, end, o , dist] : current_objects)
+    for (auto& [start, end, o, dist] : current_objects)
     {
         Vect2 pos = o->getPos();
         if (pos.x >= width)
@@ -72,7 +72,7 @@ void Arena::collide()
             auto& o2 = std::get<2>(*itj);
             if (o1->collide(*o2))
             {
-                collision_report.push_back(report(step_count + 1,*o1,*o2));
+                collision_report.push_back(report(step_count + 1, *o1, *o2));
             }
         }
     }
@@ -90,14 +90,14 @@ void Arena::report_collisions(std::stringstream& s)
 void Arena::report_distances(std::stringstream& s)
 {
     s << objects.size() + ended_objects.size() << std::endl;
-    for(auto& i : objects)
+    for (auto& i : objects)
     {
-        auto&[start,end,o,dist] = i;
+        auto& [start, end, o, dist] = i;
         s << o->getName() << " " << dist << std::endl;
     }
-    for(auto& i : ended_objects)
+    for (auto& i : ended_objects)
     {
-        auto&[start,end,o,dist] = i;
+        auto& [start, end, o, dist] = i;
         s << o->getName() << " " << dist << std::endl;
     }
 }
