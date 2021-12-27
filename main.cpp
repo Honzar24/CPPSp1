@@ -22,7 +22,7 @@ using fspath = std::filesystem::path;
 bool parsing_fail = false;
 std::stringstream REPORT;
 
-enum ERROR_TYPES
+enum class ERROR_TYPES
 {
     error,
     logic,
@@ -34,11 +34,11 @@ constexpr std::ostream& operator<<(std::ostream& s, ERROR_TYPES& err)
 {
     switch (err)
     {
-    case logic:
+    case ERROR_TYPES::logic:
         s << "logic_error"; break;
-    case format:
+    case ERROR_TYPES::format:
         s << "invalid_format"; break;
-    case identifier:
+    case ERROR_TYPES::identifier:
         s << "identifier"; break;
     default:
         s << "error";
@@ -61,10 +61,10 @@ void report_error(std::string errormsg, ERROR_TYPES type = ERROR_TYPES::error)
 
 struct arena_data
 {
-    pos_type arena_w;
-    pos_type arena_h;
-    time_type step_size;
-    size_t step_count;
+    pos_type arena_w = 0;
+    pos_type arena_h = 0;
+    time_type step_size = 0;
+    size_t step_count = 0;
     std::map<std::string, size_t> flags;
 };
 
@@ -294,7 +294,9 @@ void export_report(std::string& outFileName)
     if (!out.is_open())
     {
         std::cerr << "Can not open output file " << output.make_preferred().string() << std::endl;
+        return;
     }
+    out << REPORT.str() << std::endl;
 }
 
 int main(int argc, char** argv)

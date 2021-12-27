@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #include <Object.hpp>
 /**
  * @brief
@@ -19,6 +21,8 @@ public:
     Rect(std::string name, pos_type posx, pos_type posy, pos_type velx, pos_type vely, pos_type w, pos_type h) : Rect(name, { posx, posy }, { velx, vely }, w, h) {};
     Rect(std::string name, Vect2 pos, Vect2 vel, pos_type w, pos_type h) : Object(name, pos, vel)
     {
+        assert(w > 0);
+        assert(h > 0);
         this->width = w;
         this->height = h;
     };
@@ -28,12 +32,12 @@ public:
     Vect2 getP2() const;
 
     virtual ~Rect() = default;
-    
+
     virtual bool contains_point(Vect2 point) const override;
 
     virtual Vect2 closest_point(Vect2 point) const override;
 
 private:
-    size_t width;
-    size_t height;
+    pos_type width;
+    pos_type height;
 };

@@ -1,6 +1,8 @@
+#include <cassert>
+
 #include <Arena.hpp>
 
-std::string report(int step, Object& o1, Object& o2)
+std::string report(size_t step, Object& o1, Object& o2)
 {
     std::stringstream report;
     report << o1.getName()<< " "<< o2.getName() << " " << step <<  " ";
@@ -50,16 +52,15 @@ void Arena::update()
         }
         o->update(step_size);
         Vect2 rpos = o->getPos();
-        pos_type distance = (rpos + (pos * -1)).lenght();
+        auto distance = (rpos + (pos * -1)).lenght();
+        assert(distance >= 0);
         dist += distance;
     }
 }
 
 void Arena::collide()
 {
-    auto current_objects = objects | std::views::filter([&](auto& i) {
-        return std::get<0>(i) <= step_count;
-        });
+    auto current_objects = objects | std::views::filter(current_L);
     for (auto iti = current_objects.begin(); iti != current_objects.end();
         iti++)
     {
@@ -71,7 +72,7 @@ void Arena::collide()
             auto& o2 = std::get<2>(*itj);
             if (o1->collide(*o2))
             {
-                collision_report.push_back(report(step_count,*o1,*o2));
+                collision_report.push_back(report(step_count + 1,*o1,*o2));
             }
         }
     }

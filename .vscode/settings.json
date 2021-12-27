@@ -17,7 +17,6 @@
         "atomic": "cpp",
         "hash_map": "cpp",
         "hash_set": "cpp",
-        "strstream": "cpp",
         "bit": "cpp",
         "*.tcc": "cpp",
         "bitset": "cpp",
@@ -66,7 +65,9 @@
         "new": "cpp",
         "numbers": "cpp",
         "ostream": "cpp",
+        "ranges": "cpp",
         "semaphore": "cpp",
+        "shared_mutex": "cpp",
         "sstream": "cpp",
         "stdexcept": "cpp",
         "stop_token": "cpp",
@@ -76,15 +77,12 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "valarray": "cpp",
-        "variant": "cpp",
-        "*.inc": "cpp",
-        "ranges": "cpp",
-        "*.ipp": "cpp"
+        "variant": "cpp"
     },
     "cmake.debugConfig": {
         "args": [
             "../inputs/test.txt",
-            "null"
+            "../logs/test.log"
         ]
     },
     "C_Cpp.intelliSenseEngineFallback": "Enabled"

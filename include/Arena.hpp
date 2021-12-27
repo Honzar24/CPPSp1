@@ -14,7 +14,7 @@
 
 class Arena
 {
-    using TimedObject = std::tuple<size_t, size_t, std::unique_ptr<Object>,size_t>;
+    using TimedObject = std::tuple<size_t, size_t, std::unique_ptr<Object>, pos_type>;
 
 public:
 
@@ -30,7 +30,7 @@ public:
     void add(size_t start, size_t end, std::unique_ptr<Object> ptr)
     {
         assert(start <= end);
-        objects.emplace_back(start, end, std::move(ptr),0);
+        objects.emplace_back(start, end, std::move(ptr), 0);
     }
 
     void step()
@@ -39,10 +39,13 @@ public:
         {
             return;
         }
-        step_count++;
         removeEnded();
         update();
         collide();
+        if (step_count != max_step_count)
+        {
+            step_count++;
+        }
     }
 
     bool end() const
@@ -55,10 +58,10 @@ public:
         return step_count;
     }
 
-    int numberOfCollisoin()
+    size_t numberOfCollisoin()
     {
         return collision_report.size();
-    } 
+    }
 
     pos_type getWidth()
     {
@@ -86,11 +89,13 @@ private:
     std::vector<std::string> collision_report;
 
     const std::function<bool(TimedObject& i)> ended_L = [this](TimedObject& i) {
-        auto& [start, end, o,dist] = i;
+        auto& [start, end, o, dist] = i;
         return end <= this->step_count;
     };
-    std::function<bool(TimedObject& i)> current_L
-        = [this](TimedObject& i) { return std::get<0>(i) <= this->step_count; };
+    std::function<bool(TimedObject& i)> current_L = [this](TimedObject& i) {
+        auto& [start, end, o, dist] = i;
+        return start <= this->step_count;
+    };
 
     void removeEnded();
 
